@@ -1,1 +1,6 @@
-[    {        "name":"Accelerometer",        "x": 1,        "y": 2,        "z": 3,        "xyz": 4    },    {        "name":"Magnetometer",        "x": 1,        "y": 2,        "z": 3,        "xyz": 4    },    {        "name":"Gyroscope",        "x": 1,        "y": 2,        "z": 3,        "xyz": 4    },    {        "name":"All sensors",        "x": 1,        "y": 2,        "z": 3,        "xyz": 4    }]
+{
+    "Accelerometer": [1,2,3,4],
+    "Magnetometer": [1,2,3,4],
+    "Gyroscope":[1,2,3,4],
+    "AllSensors":[1,2,3,4]
+}

@@ -5,56 +5,71 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <pthread.h>
-#include <cjson/cJSON.h>
+#include <json-c/json.h>
 
 
 #define PORT 8080
 #define MAX_CLIENTS 5
 
-int json(){
-    // Open the JSON file
-  FILE* file = fopen("data.json", "r");
-  if (!file) {
-      printf("Failed to open file\n");
-      return 1;
+void json(char data[1024]){
+  FILE *fp;
+  char buffer[1024];
+
+  struct json_object *parsed_json;
+  struct json_object *Accelerometer;
+  struct json_object *Magnetometer;
+  struct json_object *Gyroscope;
+  struct json_object *AllSensors;
+
+  struct json_object *value;
+
+  size_t n_values;
+  size_t i;
+
+  fp = fopen("data.json","r");
+  fread(buffer, 1024, 1, fp);
+  fclose(fp);
+
+  parsed_json = json_tokener_parse(buffer);
+
+  json_object_object_get_ex(parsed_json, "Accelerometer", &Accelerometer);
+  json_object_object_get_ex(parsed_json, "Magnetometer", &Magnetometer);
+  json_object_object_get_ex(parsed_json, "Gyroscope", &Gyroscope);
+  json_object_object_get_ex(parsed_json, "AllSensors", &AllSensors);
+
+    if(strcmp(data,"1") == 0){
+      printf("Accelerometer values: \n");
+      n_values = json_object_array_length(Accelerometer);
+      for(i=0;i<n_values;i++){
+        value = json_object_array_get_idx(Accelerometer, i);
+        printf("%s\n", json_object_get_string(value));
+      }
+    }
+    if(strcmp(data,"2") == 0){
+      printf("Magnetometer values: \n");
+      n_values = json_object_array_length(Magnetometer);
+      for(i=0;i<n_values;i++){
+        value = json_object_array_get_idx(Magnetometer, i);
+        printf("%s\n", json_object_get_string(value));
+      }
+    }
+    if(strcmp(data,"3") == 0){
+      printf("Gyroscope values: \n");
+      n_values = json_object_array_length(Gyroscope);
+      for(i=0;i<n_values;i++){
+        value = json_object_array_get_idx(Gyroscope, i);
+        printf("%s\n", json_object_get_string(value));
+      }
+    }
+    if(strcmp(data,"4") == 0){
+      printf("All sensor values: \n");
+      n_values = json_object_array_length(AllSensors);
+      for(i=0;i<n_values;i++){
+        value = json_object_array_get_idx(AllSensors, i);
+        printf("%s\n", json_object_get_string(value));
+      }
+    } 
   }
-
-  // Read the contents of the file into a string
-  fseek(file, 0, SEEK_END);
-  long length = ftell(file);
-  fseek(file, 0, SEEK_SET);
-  char* data = (char*)malloc(length + 1);
-  fread(data, 1, length, file);
-  data[length] = '\0';
-
-  // Parse the JSON string
-  cJSON* root = cJSON_Parse(data);
-  if (!root) {
-      printf("Failed to parse JSON\n");
-      return 1;
-  }
-
-  // Get the array from the root object
-  cJSON* array = cJSON_GetObjectItem(root, "");
-
-  // Iterate over the array and print the values of each object
-  for (int i = 0; i < cJSON_GetArraySize(array); i++) {
-      cJSON* object = cJSON_GetArrayItem(array, i);
-      const char* name = cJSON_GetObjectItem(object, "name")->valuestring;
-      int x = cJSON_GetObjectItem(object, "x")->valueint;
-      int y = cJSON_GetObjectItem(object, "y")->valueint;
-      int z = cJSON_GetObjectItem(object, "z")->valueint;
-      int xyz = cJSON_GetObjectItem(object, "xyz")->valueint;
-      printf("Name: %s, x: %d, y: %d, z: %d, xyz: %d\n", name, x, y, z, xyz);
-  }
-
-  // Free memory and close the file
-  cJSON_Delete(root);
-  free(data);
-  fclose(file);
-
-  return 0;
-}
 
 void *handle_client(void *arg) {
   int client_socket = *(int *)arg;
@@ -63,11 +78,10 @@ void *handle_client(void *arg) {
   char buffer[1024] = {0};
   int valread = read(client_socket , buffer, 1024);
   // printf("Received message from client: %s\n", buffer);
-
+  json(buffer);
   // Send data to the client
   //char *hello = "Hello from server";
   send(client_socket , buffer , strlen(buffer) , 0);
-  json();
   printf("Message sent to client\n");
 
   // Close the socket
@@ -124,7 +138,7 @@ int main(int argc, char const *argv[]) {
       perror("pthread_create");
       exit(EXIT_FAILURE);
     }
-    printf("ID: %d\n",threads[thread_count]);
+    printf("ID: %lu\n",threads[thread_count]);
   }
 
   return 0;
