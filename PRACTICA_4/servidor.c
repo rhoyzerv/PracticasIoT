@@ -14,6 +14,7 @@
 void json(char data[1024]){
   FILE *fp;
   char buffer[1024];
+  char sdata[5][5];
 
   struct json_object *parsed_json;
   struct json_object *Accelerometer;
@@ -42,7 +43,7 @@ void json(char data[1024]){
       n_values = json_object_array_length(Accelerometer);
       for(i=0;i<n_values;i++){
         value = json_object_array_get_idx(Accelerometer, i);
-        printf("%s\n", json_object_get_string(value));
+        sdata[i] =  json_object_get_string(value);
       }
     }
     if(strcmp(data,"2") == 0){
@@ -50,7 +51,7 @@ void json(char data[1024]){
       n_values = json_object_array_length(Magnetometer);
       for(i=0;i<n_values;i++){
         value = json_object_array_get_idx(Magnetometer, i);
-        printf("%s\n", json_object_get_string(value));
+        sdata[i] =  json_object_get_string(value);
       }
     }
     if(strcmp(data,"3") == 0){
@@ -58,7 +59,7 @@ void json(char data[1024]){
       n_values = json_object_array_length(Gyroscope);
       for(i=0;i<n_values;i++){
         value = json_object_array_get_idx(Gyroscope, i);
-        printf("%s\n", json_object_get_string(value));
+        sdata[i] =  json_object_get_string(value);
       }
     }
     if(strcmp(data,"4") == 0){
@@ -66,13 +67,15 @@ void json(char data[1024]){
       n_values = json_object_array_length(AllSensors);
       for(i=0;i<n_values;i++){
         value = json_object_array_get_idx(AllSensors, i);
-        printf("%s\n", json_object_get_string(value));
+        sdata[i] =  json_object_get_string(value);
       }
     } 
+    return sdata;
   }
 
 void *handle_client(void *arg) {
   int client_socket = *(int *)arg;
+  char datajson [5][5];
 
   // Receive data from the client
   char buffer[1024] = {0};
@@ -80,7 +83,7 @@ void *handle_client(void *arg) {
   // printf("Received message from client: %s\n", buffer);
   json(buffer);
   // Send data to the client
-  //char *hello = "Hello from server";
+  char *hello = "Hello from server";
   send(client_socket , buffer , strlen(buffer) , 0);
   printf("Message sent to client\n");
 
